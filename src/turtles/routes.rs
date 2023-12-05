@@ -1,6 +1,6 @@
 use crate::error_handler::AppError;
 use crate::turtles::{NewTurtle, Turtle};
-use actix_web::{get, web, HttpResponse, post};
+use actix_web::{get, web, HttpResponse, post, put};
 
 #[get("/turtles")]
 async fn find_all() -> Result<HttpResponse, AppError> {
@@ -20,8 +20,18 @@ async fn create(turtle: web::Json<NewTurtle>) -> Result<HttpResponse, AppError> 
     Ok(HttpResponse::Ok().json(employee))
 }
 
+#[put("/turtles/{id}")]
+async fn update(
+    id: web::Path<i32>,
+    turtle: web::Json<NewTurtle>,
+) -> Result<HttpResponse, AppError> {
+    let employee = Turtle::update(id.into_inner(), turtle.into_inner())?;
+    Ok(HttpResponse::Ok().json(employee))
+}
+
 pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(find_all);
     config.service(find);
     config.service(create);
+    config.service(update);
 }

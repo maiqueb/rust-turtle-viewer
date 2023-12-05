@@ -16,7 +16,7 @@ pub struct Turtle {
     pub created_on: Option<NaiveDateTime>,
 }
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, AsChangeset)]
 #[diesel(table_name = ninja_turtles)]
 pub struct NewTurtle {
     pub name: String,
@@ -45,5 +45,14 @@ impl Turtle {
             .values(turtle)
             .get_result(&mut conn)?;
         Ok(turtle)
+    }
+
+    pub fn update(id: i32, turtle: NewTurtle) -> Result<Self, AppError> {
+        let mut conn = db::connection()?;
+        let employee = diesel::update(ninja_turtles::table)
+            .filter(ninja_turtles::user_id.eq(id))
+            .set(turtle)
+            .get_result(&mut conn)?;
+        Ok(employee)
     }
 }
