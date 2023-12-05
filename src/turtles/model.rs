@@ -16,6 +16,14 @@ pub struct Turtle {
     pub created_on: Option<NaiveDateTime>,
 }
 
+#[derive(Serialize, Deserialize, Insertable)]
+#[diesel(table_name = ninja_turtles)]
+pub struct NewTurtle {
+    pub name: String,
+    pub email: String,
+    pub weapon: String,
+}
+
 impl Turtle {
     pub fn find_all() -> Result<Vec<Self>, AppError> {
         let mut conn = db::connection()?;
@@ -28,6 +36,14 @@ impl Turtle {
         let turtle = ninja_turtles::table
             .filter(ninja_turtles::user_id.eq(id))
             .first(&mut conn)?;
+        Ok(turtle)
+    }
+
+    pub fn create(turtle: NewTurtle) -> Result<Self, AppError> {
+        let mut conn = db::connection()?;
+        let turtle = diesel::insert_into(ninja_turtles::table)
+            .values(turtle)
+            .get_result(&mut conn)?;
         Ok(turtle)
     }
 }
