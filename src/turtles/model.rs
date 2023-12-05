@@ -55,4 +55,11 @@ impl Turtle {
             .get_result(&mut conn)?;
         Ok(employee)
     }
+
+    pub fn delete(id: i32) -> Result<usize, AppError> {
+        let mut conn = db::connection()?;
+        let res = diesel::delete(ninja_turtles::table.filter(ninja_turtles::user_id.eq(id)))
+            .execute(&mut conn)?;
+        Ok(res)
+    }
 }

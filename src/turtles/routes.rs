@@ -1,6 +1,7 @@
 use crate::error_handler::AppError;
 use crate::turtles::{NewTurtle, Turtle};
-use actix_web::{get, web, HttpResponse, post, put};
+use actix_web::http::StatusCode;
+use actix_web::{delete, get, post, put, web, HttpResponse};
 
 #[get("/turtles")]
 async fn find_all() -> Result<HttpResponse, AppError> {
@@ -29,9 +30,16 @@ async fn update(
     Ok(HttpResponse::Ok().json(employee))
 }
 
+#[delete("/turtles/{id}")]
+async fn delete(id: web::Path<i32>) -> Result<HttpResponse, AppError> {
+    Turtle::delete(id.into_inner())?;
+    Ok(HttpResponse::new(StatusCode::NO_CONTENT))
+}
+
 pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(find_all);
     config.service(find);
     config.service(create);
     config.service(update);
+    config.service(delete);
 }
