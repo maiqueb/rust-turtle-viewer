@@ -1,0 +1,1 @@
+DROP TABLE ninja_turtles
