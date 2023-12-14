@@ -9,6 +9,8 @@ mod error_handler;
 mod turtles;
 
 mod schema;
+#[cfg(test)]
+mod test;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

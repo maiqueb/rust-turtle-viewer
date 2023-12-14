@@ -1,6 +1,7 @@
 use crate::error_handler::AppError;
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
+use diesel::Connection;
 use lazy_static::lazy_static;
 use std::env;
 
@@ -16,12 +17,23 @@ lazy_static! {
     static ref POOL: Pool = {
         let db_url = env::var("DATABASE_URL").expect("Database url not set");
         let manager = ConnectionManager::<PgConnection>::new(db_url);
-        Pool::new(manager).expect("Failed to create db pool")
+        let pool_size = match cfg!(test) {
+            true => 1,
+            false => 10,
+        };
+        r2d2::Builder::new()
+            .max_size(pool_size)
+            .build(manager)
+            .expect("Failed to create db pool")
     };
 }
 pub fn init() {
     lazy_static::initialize(&POOL);
     let mut conn = connection().expect("Failed to get db connection");
+    if cfg!(test) {
+        conn.begin_test_transaction()
+            .expect("Failed to start transaction");
+    }
     conn.run_pending_migrations(MIGRATIONS).unwrap();
 }
 pub fn connection() -> Result<DbConnection, AppError> {
