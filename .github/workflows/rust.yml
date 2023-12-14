@@ -16,11 +16,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install postgres dependencies
+      run: sudo apt-get update && sudo apt-get install -y libpq-dev
     - name: Check format
       run: cargo fmt --check
     - name: Lint
       run: cargo clippy -- -D warnings
     - name: Build
-      run: cargo build --verbose
+      run: cargo build
+    - name: Install diesel
+      run: cargo install diesel_cli --no-default-features --features postgres
+    - name: Start DB
+      run: docker run --name turtle-db -d -p 5432:5432 quay.io/mduarted/turtle-db
+    - uses: nick-fields/retry@v2
+      name: Runs migrations
+      with:
+        command: diesel migration run
+        max_attempts: 3
+        timeout_seconds: 45
+      env:
+        DATABASE_URL: postgresql://splinter:cheese@localhost:5432/turtles
     - name: Run tests
       run: cargo test --verbose
